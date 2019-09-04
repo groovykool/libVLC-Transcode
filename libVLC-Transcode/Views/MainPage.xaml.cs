@@ -19,6 +19,7 @@ namespace libVLC_Transcode.Views
     public MainPage()
     {
       InitializeComponent();
+      //Assign event handlers
       Loaded += MainPage_Loaded;
       Unloaded += MainPage_Unloaded;
     }
@@ -31,6 +32,7 @@ namespace libVLC_Transcode.Views
     private void MainPage_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
       OT.Text += "\n";
+      //Setup LibVLC objects
       RecordInit();
     }
 
