@@ -56,7 +56,8 @@
         Margin="12"
         TextWrapping="Wrap"
         Text="***Start of Log***"
-        AcceptsReturn="True" />
+        AcceptsReturn="True"
+        TextChanged="OT_TextChanged"/>
     </Grid>
   </Grid>
 </Page>
