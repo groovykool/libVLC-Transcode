@@ -26,11 +26,26 @@
         <RowDefinition
           Height="auto" />
         <RowDefinition
+          Height="auto" />
+        <RowDefinition
           Height="*" />
       </Grid.RowDefinitions>
+      <ComboBox
+        x:Name="CB"
+        Margin="12"
+        SelectionChanged="ComboBox_SelectionChanged"
+        Header="Transcode"
+        SelectedIndex="0"
+        PlaceholderText="Pick an Option"
+        Width="200">
+        <x:String>no transcode mp4</x:String>
+        <x:String>transcode mp2v ts</x:String>
+        <x:String>transcode mp4v mp4</x:String>
+        <x:String>transcode theo ogg</x:String>
+      </ComboBox>
       <StackPanel
         Orientation="Horizontal"
-        Grid.Row="0">
+        Grid.Row="1">
         
         <Button
           x:Name="PlayRec"
@@ -50,7 +65,7 @@
       </StackPanel>
       <TextBox
         x:Name="OT"
-        Grid.Row="1"
+        Grid.Row="2"
         Header="Log"
         VerticalAlignment="Stretch"
         Margin="12"
