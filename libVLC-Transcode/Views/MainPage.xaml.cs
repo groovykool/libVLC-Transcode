@@ -20,7 +20,7 @@ namespace libVLC_Transcode.Views
     int lines = 0;
     string option = "",pathstring="",fname="",cbmess="";
     StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-    double lasttime = 0;
+    double lasttime = 0,time=0;
     public MainPage()
     {
       InitializeComponent();
@@ -36,7 +36,7 @@ namespace libVLC_Transcode.Views
 
     private void MainPage_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
-      OT.Text += "\n" + cbmess;
+      OT.Text +="\n" +cbmess;
       //Setup LibVLC objects
       //RecordInit();
     }
@@ -85,7 +85,7 @@ namespace libVLC_Transcode.Views
 
     private async void Mprec_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
     {
-      var time = (double)e.Time/1000;
+      time = (double)e.Time/1000;
       if (time > (lasttime + 10))
       {
         await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
@@ -128,7 +128,7 @@ namespace libVLC_Transcode.Views
     private void Pause_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
       mprec.Pause();
-      OT.Text += "\n\nMediaPlayer was Paused \n\n";
+      OT.Text += "\nMediaPlayer was Paused \n\n";
     }
 
     private void Stop_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -139,30 +139,38 @@ namespace libVLC_Transcode.Views
     private async void RecStop()
     {
       mprec.Stop();
-      OT.Text += "\n\nMediaPlayer was Stopped \n\n";
+      OT.Text += "\nMediaPlayer was Stopped \n\n";
       lasttime = 0;
       //StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
       StorageFile temp= await tempFolder.GetFileAsync(fname);
       var tempProperties = await temp.GetBasicPropertiesAsync();
+     
       var fsize = tempProperties.Size;
       Debug.WriteLine(fsize.ToString());
       if (fsize < 5000)
       {
-        OT.Text += $"\n\nRecord File Size: {fsize} *Record Failed*  \n\n";
+        OT.Text += $"\nRecord File Size: {fsize} *Record Failed*  \n\n";
       }
       else
       {
-        OT.Text += $"\n\nRecord File Size: {fsize}\n\n";
+        
         StorageFolder picFolder = KnownFolders.VideosLibrary;
         StorageFolder newFolder = await picFolder.CreateFolderAsync("libVLC-Transcode", CreationCollisionOption.OpenIfExists);
         //append the date and time to the snapshot file.
         
         StorageFile copiedFile = await temp.CopyAsync(newFolder, fname, NameCollisionOption.GenerateUniqueName);
+        var videoProperties = await temp.Properties.GetVideoPropertiesAsync();
+
         await temp.DeleteAsync();
         if (copiedFile.IsAvailable)
         {
-          OT.Text += "\n\nRecord Success: File Saved in Pictures Library:libVLC-Transcode " + copiedFile.Name + "\n\n";
+          OT.Text += $"\nRecord Success: File Saved in Pictures Library:libVLC-Transcode: {copiedFile.Name}\n";
+          OT.Text += $"Record File Size: {fsize}\n";
+          var vlctime = new TimeSpan(0, 0, (int)time);
+          OT.Text += $"Video Duration: {videoProperties.Duration}     LibVLC Time:  {vlctime}\n\n";
+          
         }
+        RecordDipose();
       }
 
 
@@ -175,22 +183,10 @@ namespace libVLC_Transcode.Views
     {
       RecordInit();
       mprec.Play(mrec);
-      OT.Text += "\n\nMediaPlayer is Playing \n\n";
+      OT.Text += "MediaPlayer is Playing \n\n";
     }
 
-    private void Set<T>(ref T storage, T value, [CallerMemberName]string propertyName = null)
-    {
-      if (Equals(storage, value))
-      {
-        return;
-      }
-
-      storage = value;
-      OnPropertyChanged(propertyName);
-    }
-
-    private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
+    
     private void OT_TextChanged(object sender, TextChangedEventArgs e)
     {
 
@@ -216,32 +212,32 @@ namespace libVLC_Transcode.Views
           option = $":sout=#file{{dst={pathstring}}}";
           if (OT == null)
           {
-            cbmess += "\n\nno transcode mp4 was selected\n\n";
+            cbmess += "no transcode mp4 was selected\n\n";
           }
           else
           {
-            OT.Text+= "\n\nno transcode mp4 was selected\n\n";
+            OT.Text+= "no transcode mp4 was selected\n\n";
           }
           break;
         case "transcode mp2v ts":
           fname = "video-mp2v" + ".ts";
           pathstring = tempFolder.Path + "\\" + fname;
           option = $":sout=#transcode{{vcodec=mp2v,vb=3000,scale=Auto,acodec=mpga,ab=128,channels=2,samplerate=44100,scodec=none}}:std{{access=file,mux=ts,dst={pathstring}}}";
-          OT.Text += "\n\ntranscode mp2v ts was selected\n\n";
+          OT.Text += "transcode mp2v ts was selected\n\n";
           break;
 
         case "transcode mp4v mp4":
           fname = "video-mp4v" + ".mp4";
           pathstring = tempFolder.Path + "\\" + fname;
           option = $":sout=#transcode{{vcodec=mp4v,vb=2000,scale=Auto,acodec=mp4a,ab=128,channels=2,samplerate=44100,scodec=none}}:std{{access=file,mux=mp4,dst={pathstring}}}";
-          OT.Text += "\n\ntranscode mp4v mp4 was selected\n\n";
+          OT.Text += "transcode mp4v mp4 was selected\n\n";
           break;
 
         case "transcode theo ogg":
-          fname = "video-theo" + ".ogg";
+          fname = "video-theo" + ".ogv";
           pathstring = tempFolder.Path + "\\" + fname;
           option = $":sout=#transcode{{vcodec=theo,vb=2000,scale=Auto,acodec=vorb,ab=128,channels=2,samplerate=8000,scodec=none}}:std{{access=file,mux=ogg,dst={pathstring}}}";
-          OT.Text += "\n\ntranscode theo ogg was selected\n\n";
+          OT.Text += "transcode theo ogg was selected\n\n";
           break;
 
         default:
