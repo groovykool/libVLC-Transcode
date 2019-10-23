@@ -27,21 +27,34 @@
         <ColumnDefinition
           Width="400" />
       </Grid.ColumnDefinitions>
-      <ComboBox
-        x:Name="CB"
-        Margin="12"
+      <StackPanel
+        Orientation="Vertical"
         Grid.Row="0"
-        Grid.Column="0"
-        SelectionChanged="ComboBox_SelectionChanged"
-        Header="Select Transcode Option"
-        SelectedIndex="0"
-        PlaceholderText="Pick an Option"
-        Width="200">
-        <x:String>no transcode mp4</x:String>
-        <x:String>transcode mp2v ts</x:String>
-        <x:String>transcode mp4v mp4</x:String>
-        <x:String>transcode theo ogg</x:String>
-      </ComboBox>
+        Grid.Column="0">
+        <ComboBox
+          x:Name="CB"
+          Margin="12"
+          Grid.Row="0"
+          Grid.Column="0"
+          Header="Select Transcode Option"
+          SelectedIndex="0"
+          PlaceholderText="Pick an Option"
+          Width="200">
+          <x:String>no transcode mp4</x:String>
+          <x:String>transcode mp2v ts</x:String>
+          <x:String>transcode mp4v mp4</x:String>
+          <x:String>transcode theo ogg</x:String>
+        </ComboBox>
+        <ComboBox
+          x:Name="CBurl"
+          Margin="12"
+          Grid.Row="0"
+          Grid.Column="0"
+          Header="Select Stream URL"
+          SelectedIndex="0"
+          PlaceholderText="Pick an Option"
+          ItemsSource="{x:Bind CBurlSource,Mode=OneWay}"/>
+      </StackPanel>
       <StackPanel
         Orientation="Horizontal"
         Grid.Row="1"
@@ -55,11 +68,13 @@
           x:Name="Pause"
           Content="Pause"
           Margin="12"
+          IsEnabled="False"
           Click="Pause_Click" />
         <Button
           x:Name="Stop"
           Content="Stop"
           Margin="12"
+          IsEnabled="False"
           Click="Stop_Click" />
       </StackPanel>
       <TextBox
