@@ -135,7 +135,7 @@ namespace libVLC_Transcode.Views
     }
 
 
-    private void PlayRec_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+    private async void PlayRec_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
       PlayRec.IsEnabled = false;
       OT.Text = "***Start of Log***\n";
@@ -170,14 +170,14 @@ namespace libVLC_Transcode.Views
           break;
       }
 
-      RecordInit();
+      await RecordInit();
       mprec.Play(mrec);
       OT.Text += "MediaPlayer is Playing \n\n";
       Pause.IsEnabled = true;
       Stop.IsEnabled = true;
     }
 
-    private void RecordInit()
+    private Task RecordInit()
     {
 
       //urlstring = "http://194.103.218.16/mjpg/video.mjpg";
@@ -206,6 +206,7 @@ namespace libVLC_Transcode.Views
       mrec.AddOption(option);
       OT.Text += $"\nOption was added: {option}\n";
       //mrec.AddOption(":sout-keep");
+      return Task.CompletedTask;
 
     }
     private void OT_TextChanged(object sender, TextChangedEventArgs e)
