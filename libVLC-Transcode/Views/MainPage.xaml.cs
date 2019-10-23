@@ -20,7 +20,7 @@ namespace libVLC_Transcode.Views
     int lines = 0;
     string option = "", pathstring = "", fname = "",  urlstring = "";
     StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-    double lasttime = 0, time = 0;
+    double time = 0;
     private ObservableCollection<Results> resultlist = new ObservableCollection<Results>();
     private ObservableCollection<string> CBurlSource = new ObservableCollection<string>();
     ScrollViewer OTscroll;
@@ -45,19 +45,6 @@ namespace libVLC_Transcode.Views
       InitAutoScroll();
     }
 
-    
-    private async void Mprec_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
-    {
-      time = (double)e.Time / 1000;
-      if (time > (lasttime + 10))
-      {
-        lasttime = time;
-        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-        {
-          OT.Text += $"\nVideo Time {time} Sec\n";
-        });
-      }
-    }
 
     private void RecordDipose()
     {
@@ -67,10 +54,10 @@ namespace libVLC_Transcode.Views
       rLIB.Dispose();
     }
 
-    public async Task log(LogEventArgs ee)
+    public async void log(LogEventArgs ee)
     {
       //Run on UIthread to write to control
-      await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+      await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
       {
         lines++;
         OT.Text += $"libVLC:{lines}[{ee.Level}] {ee.Module}:{ee.Message}\n";
@@ -92,7 +79,6 @@ namespace libVLC_Transcode.Views
     {
       mprec.Stop();
       OT.Text += "\nMediaPlayer was Stopped \n\n";
-      lasttime = 0;
 
       StorageFile temp = await tempFolder.GetFileAsync(fname);
       var tempProperties = await temp.GetBasicPropertiesAsync();
@@ -121,7 +107,7 @@ namespace libVLC_Transcode.Views
           var ts = videoProperties.Duration;
           var dur = new TimeSpan(ts.Hours, ts.Minutes, ts.Seconds);
           OT.Text += $"Video Duration: {dur}     LibVLC Time:  {vlctime}\n\n";
-          var res = new Results { option = (string)CB.SelectedItem, filename = copiedFile.Name, filesize = (uint)fsize, duration = dur, expected = vlctime };
+          var res = new Results { option = (string)CB.SelectedItem, filename = copiedFile.Name, filesize = (uint)fsize, duration = dur};
           resultlist.Add(res);
         }
       }
@@ -180,10 +166,6 @@ namespace libVLC_Transcode.Views
     private Task RecordInit()
     {
 
-      //urlstring = "http://194.103.218.16/mjpg/video.mjpg";
-      //urlstring = "rtsp://public:public@hyc.homeip.net/cam/realmonitor?channel=1&subtype=1";
-      //urlstring = "http://24.43.239.50/mjpg/video.mjpg";
-      //urlstring = "rtsp://:@tonyw.selfip.com:6001/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif";
       var liboptions = new string[]
                 {
                     $"--no-osd",
@@ -198,9 +180,8 @@ namespace libVLC_Transcode.Views
 
       rLIB = new LibVLC(liboptions);
       //assign log event handler
-      rLIB.Log += async (sender, ee) => await log(ee);
+      rLIB.Log += (sender, ee) => log(ee);
       mprec = new MediaPlayer(rLIB);
-      mprec.TimeChanged += Mprec_TimeChanged;
       urlstring = (string)CBurl.SelectedValue;
       mrec = new Media(rLIB, urlstring, FromType.FromLocation);
       mrec.AddOption(option);
@@ -211,7 +192,7 @@ namespace libVLC_Transcode.Views
     }
     private void OT_TextChanged(object sender, TextChangedEventArgs e)
     {
-      OTscroll.ChangeView(0.0f, OTscroll.ExtentHeight, 1.0f);
+      //OTscroll.ChangeView(0.0f, OTscroll.ExtentHeight, 1.0f);
     }
 
     private void InitAutoScroll()
@@ -230,7 +211,8 @@ namespace libVLC_Transcode.Views
     private void InitCBbox()
     {
       CBurlSource.Add("rtsp://:@tonyw.selfip.com:6001/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif");
-      CBurlSource.Add("http://194.103.218.16/mjpg/video.mjpg");
+      CBurlSource.Add("rtsp://public:public@hyc.homeip.net/cam/realmonitor?channel=1&subtype=1");
+      CBurlSource.Add("rtsp://b1.dnsdojo.com:1935/live/sys3.stream");
     }
   }
 }
