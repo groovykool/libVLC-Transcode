@@ -8,19 +8,23 @@ using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
+using libVLC_Transcode.Helpers;
+using System.Collections.ObjectModel;
 
 namespace libVLC_Transcode.Views
 {
-  public sealed partial class MainPage : Page, INotifyPropertyChanged
+  public sealed partial class MainPage : Page
   {
 
     MediaPlayer mprec;
     LibVLC rLIB;
     Media mrec;
     int lines = 0;
-    string option = "",pathstring="",fname="",cbmess="";
+    string option = "", pathstring = "", fname = "", cbmess = "";
     StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-    double lasttime = 0,time=0;
+    double lasttime = 0, time = 0;
+    //Results OutputResults = new Results();
+    private ObservableCollection<Results> resultlist = new ObservableCollection<Results>();
     public MainPage()
     {
       InitializeComponent();
@@ -36,7 +40,7 @@ namespace libVLC_Transcode.Views
 
     private void MainPage_Loaded(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
-      OT.Text +="\n" +cbmess;
+      OT.Text += "\n" + cbmess;
       //Setup LibVLC objects
       //RecordInit();
     }
@@ -44,7 +48,7 @@ namespace libVLC_Transcode.Views
     private void RecordInit()
     {
 
-      
+
       //pathstring = tempFolder.Path + "\\recordtemp.ts";
 
 
@@ -85,13 +89,14 @@ namespace libVLC_Transcode.Views
 
     private async void Mprec_TimeChanged(object sender, MediaPlayerTimeChangedEventArgs e)
     {
-      time = (double)e.Time/1000;
+      time = (double)e.Time / 1000;
       if (time > (lasttime + 10))
       {
+        lasttime = time;
         await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
         {
           OT.Text += $"\nVideo Time {time} Sec\n";
-          lasttime = time;
+          
         });
       }
     }
@@ -109,16 +114,12 @@ namespace libVLC_Transcode.Views
     public async void log(LogEventArgs ee)
     {
 
-      
+
       //Run on UIthread to write to control
-      
+
       await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
       {
-        if (lines > 2000)
-        {
-          OT.Text = "";
-          lines = 0;
-        }
+       
         lines++;
         OT.Text += $"libVLC:{lines}[{ee.Level}] {ee.Module}:{ee.Message}\n";
 
@@ -141,52 +142,67 @@ namespace libVLC_Transcode.Views
       mprec.Stop();
       OT.Text += "\nMediaPlayer was Stopped \n\n";
       lasttime = 0;
+
       //StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-      StorageFile temp= await tempFolder.GetFileAsync(fname);
+      StorageFile temp = await tempFolder.GetFileAsync(fname);
       var tempProperties = await temp.GetBasicPropertiesAsync();
-     
+
       var fsize = tempProperties.Size;
-      Debug.WriteLine(fsize.ToString());
+      //Debug.WriteLine(fsize.ToString());
       if (fsize < 5000)
       {
         OT.Text += $"\nRecord File Size: {fsize} *Record Failed*  \n\n";
+        var res = new Results { option = (string)CB.SelectedItem, filename = "Record FAILED" };
+        resultlist.Add(res);
+        //LV.ItemsSource = resultlist;
       }
       else
       {
-        
+
         StorageFolder picFolder = KnownFolders.VideosLibrary;
         StorageFolder newFolder = await picFolder.CreateFolderAsync("libVLC-Transcode", CreationCollisionOption.OpenIfExists);
         //append the date and time to the snapshot file.
-        
+
         StorageFile copiedFile = await temp.CopyAsync(newFolder, fname, NameCollisionOption.GenerateUniqueName);
         var videoProperties = await temp.Properties.GetVideoPropertiesAsync();
 
         await temp.DeleteAsync();
         if (copiedFile.IsAvailable)
         {
-          OT.Text += $"\nRecord Success: File Saved in Pictures Library:libVLC-Transcode: {copiedFile.Name}\n";
-          OT.Text += $"Record File Size: {fsize}\n";
+          OT.Text += "\n";
+          OT.Text += $"Record Success: File Saved in Pictures Library:libVLC-Transcode: {copiedFile.Name}\n";
+          OT.Text += $"Record File Size: {fsize}\n\n";
           var vlctime = new TimeSpan(0, 0, (int)time);
-          OT.Text += $"Video Duration: {videoProperties.Duration}     LibVLC Time:  {vlctime}\n\n";
-          
+          var ts = videoProperties.Duration;
+          var dur = new TimeSpan(ts.Hours, ts.Minutes, ts.Seconds);
+          OT.Text += $"Video Duration: {dur}     LibVLC Time:  {vlctime}\n\n";
+          var res = new Results { option = (string)CB.SelectedItem, filename = copiedFile.Name, filesize = (uint)fsize, duration = dur, expected = vlctime };
+          resultlist.Add(res);
         }
-        RecordDipose();
-      }
 
+
+      }
+      LV.ItemsSource = resultlist;
+      RecordDipose();
+      time = 0;
+      CB.IsEnabled = true;
+      PlayRec.IsEnabled = true;
 
 
 
     }
-    public event PropertyChangedEventHandler PropertyChanged;
+   
 
     private void PlayRec_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
+      CB.IsEnabled = false;
+      PlayRec.IsEnabled = false;
       RecordInit();
       mprec.Play(mrec);
       OT.Text += "MediaPlayer is Playing \n\n";
     }
 
-    
+
     private void OT_TextChanged(object sender, TextChangedEventArgs e)
     {
 
@@ -204,6 +220,10 @@ namespace libVLC_Transcode.Views
 
     private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+      if (OT != null)
+      {
+        OT.Text = "***Start of Log***\n";
+      }
       switch (CB.SelectedItem)
       {
         case "no transcode mp4":
@@ -216,7 +236,7 @@ namespace libVLC_Transcode.Views
           }
           else
           {
-            OT.Text+= "no transcode mp4 was selected\n\n";
+            OT.Text += "no transcode mp4 was selected\n\n";
           }
           break;
         case "transcode mp2v ts":

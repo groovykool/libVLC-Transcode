@@ -4,21 +4,12 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:Helpers="using:libVLC_Transcode.Helpers"
   Style="{StaticResource PageStyle}"
   mc:Ignorable="d">
   <Grid
     x:Name="ContentArea"
-    Margin="{StaticResource MediumLeftRightMargin}">
-    <Grid.RowDefinitions>
-      <RowDefinition
-        Height="48" />
-      <RowDefinition
-        Height="*" />
-    </Grid.RowDefinitions>
-    <TextBlock
-      Grid.Row="0"
-      x:Uid="Main_Title"
-      Style="{StaticResource PageTitleStyle}" />
+    Margin="4">
     <Grid
       Grid.Row="1"
       Background="{ThemeResource SystemControlPageBackgroundChromeLowBrush}">
@@ -30,11 +21,19 @@
         <RowDefinition
           Height="*" />
       </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition
+          Width="*" />
+        <ColumnDefinition
+          Width="400" />
+      </Grid.ColumnDefinitions>
       <ComboBox
         x:Name="CB"
         Margin="12"
+        Grid.Row="0"
+        Grid.Column="0"
         SelectionChanged="ComboBox_SelectionChanged"
-        Header="Transcode"
+        Header="Select Transcode Option"
         SelectedIndex="0"
         PlaceholderText="Pick an Option"
         Width="200">
@@ -45,8 +44,8 @@
       </ComboBox>
       <StackPanel
         Orientation="Horizontal"
-        Grid.Row="1">
-        
+        Grid.Row="1"
+        Grid.Column="0">
         <Button
           x:Name="PlayRec"
           Content="Play/Rec"
@@ -66,13 +65,125 @@
       <TextBox
         x:Name="OT"
         Grid.Row="2"
+        Grid.ColumnSpan="1"
         Header="Log"
         VerticalAlignment="Stretch"
         Margin="12"
         TextWrapping="Wrap"
         Text="***Start of Log***"
         AcceptsReturn="True"
-        TextChanged="OT_TextChanged"/>
+        TextChanged="OT_TextChanged" />
+      <ListView
+        x:Name="LV"
+        Grid.Row="0"
+        Grid.Column="1"
+        Grid.RowSpan="3"
+        Header="Result List"
+        IsItemClickEnabled="False"
+        SelectionMode="None"
+        Margin="12">
+        <ListView.ItemContainerStyle>
+          <Style
+            TargetType="ListViewItem">
+            <Setter
+              Property="HorizontalAlignment"
+              Value="Stretch" />
+            <Setter
+              Property="HorizontalContentAlignment"
+              Value="Stretch" />
+            <Setter
+              Property="Padding"
+              Value="0" />
+          </Style>
+        </ListView.ItemContainerStyle>
+        <ListView.ItemTemplate>
+          <DataTemplate
+            x:Name="TwoLineDataTemplate"
+            x:DataType="Helpers:Results">
+            <Grid
+              MinHeight="20"
+              Padding="8,4,8,4"
+              BorderBrush="Gray"
+              BorderThickness="1">
+              <Grid.RowDefinitions>
+                <RowDefinition
+                  Height="auto" />
+                <RowDefinition
+                  Height="auto" />
+                <RowDefinition
+                  Height="auto" />
+              </Grid.RowDefinitions>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition
+                  Width="*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel
+                Orientation="Horizontal"
+                Grid.Row="0">
+                <TextBlock
+                  Text="Option:"
+                  Style="{ThemeResource BaseTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom"/>
+                <TextBlock
+                  Text="{x:Bind  option,Mode=OneWay}"
+                  Style="{ThemeResource CaptionTextBlockStyle}"
+                  Margin="0,0,0,0"
+                  VerticalAlignment="Bottom"/>
+              </StackPanel>
+              <StackPanel
+                Orientation="Horizontal"
+                Grid.Row="1">
+                <TextBlock
+                  Text="Filename:"
+                  Style="{ThemeResource BaseTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom"/>
+                <TextBlock
+                  Text="{x:Bind  filename,Mode=OneWay}"
+                  Style="{ThemeResource CaptionTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom"/>
+                <TextBlock
+                  Text="Size:"
+                  Style="{ThemeResource BaseTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom"/>
+                <TextBlock
+                  Text="{x:Bind filesize,Mode=OneWay}"
+                  Style="{ThemeResource CaptionTextBlockStyle}"
+                  Margin="0,0,0,0"
+                  VerticalAlignment="Bottom"
+                  />
+              </StackPanel>
+              <StackPanel
+                Orientation="Horizontal"
+                Grid.Row="2">
+                <TextBlock
+                  Text="Duration:"
+                  Style="{ThemeResource BaseTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom" />
+                <TextBlock
+                  Text="{x:Bind  duration,Mode=OneWay}"
+                  Style="{ThemeResource CaptionTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom" />
+                <TextBlock
+                  Text="VLCTime:"
+                  Style="{ThemeResource BaseTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom" />
+                <TextBlock
+                  Text="{x:Bind expected,Mode=OneWay}"
+                  Style="{ThemeResource CaptionTextBlockStyle}"
+                  Margin="0,0,0,0"
+                  VerticalAlignment="Bottom" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListView.ItemTemplate>
+      </ListView>
     </Grid>
   </Grid>
 </Page>
