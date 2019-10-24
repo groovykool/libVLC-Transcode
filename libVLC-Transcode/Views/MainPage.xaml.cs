@@ -8,6 +8,7 @@ using Windows.UI.Xaml.Media;
 using libVLC_Transcode.Helpers;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace libVLC_Transcode.Views
 {
@@ -18,12 +19,14 @@ namespace libVLC_Transcode.Views
     LibVLC rLIB;
     Media mrec;
     int lines = 0;
-    string option = "", pathstring = "", fname = "",  urlstring = "";
+    string option = "", pathstring = "", fname = "", urlstring = "",selapsed="";
     StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-    double time = 0;
+    DateTimeOffset time,lasttime,starttime;
     private ObservableCollection<Results> resultlist = new ObservableCollection<Results>();
     private ObservableCollection<string> CBurlSource = new ObservableCollection<string>();
+    Timer timer;
     
+
 
     public MainPage()
     {
@@ -42,7 +45,7 @@ namespace libVLC_Transcode.Views
     {
       OT.Text += "\n";
       InitCBbox();
-      
+
     }
 
 
@@ -54,11 +57,12 @@ namespace libVLC_Transcode.Views
       rLIB.Dispose();
     }
 
-   
+
     private void Pause_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
       mprec.Pause();
-      OT.Text += "\nMediaPlayer was Paused \n\n";
+      timer.Dispose();
+      OT.Text += "\nMediaPlayer was Paused and Play timer Diposed. \n";
     }
 
     private async void Stop_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -69,7 +73,8 @@ namespace libVLC_Transcode.Views
     private async Task RecStop()
     {
       mprec.Stop();
-      OT.Text += "\nMediaPlayer was Stopped \n\n";
+      timer.Dispose();
+      OT.Text += "\nMediaPlayer was Stopped \n";
 
       StorageFile temp = await tempFolder.GetFileAsync(fname);
       var tempProperties = await temp.GetBasicPropertiesAsync();
@@ -77,7 +82,7 @@ namespace libVLC_Transcode.Views
 
       if (fsize < 5000)
       {
-        OT.Text += $"\nRecord File Size: {fsize} *Record Failed*  \n\n";
+        OT.Text += $"Record File Size: {fsize} *Record Failed*  \n";
         var res = new Results { option = (string)CB.SelectedItem, filename = "Record FAILED" };
         resultlist.Add(res);
       }
@@ -93,21 +98,23 @@ namespace libVLC_Transcode.Views
         {
           OT.Text += "\n";
           OT.Text += $"Record Success: File Saved in Pictures Library:libVLC-Transcode: {copiedFile.Name}\n";
-          OT.Text += $"Record File Size: {fsize}\n\n";
-          var vlctime = new TimeSpan(0, 0, (int)time);
-          var ts = videoProperties.Duration;
-          var dur = new TimeSpan(ts.Hours, ts.Minutes, ts.Seconds);
-          OT.Text += $"Video Duration: {dur}     LibVLC Time:  {vlctime}\n\n";
-          var res = new Results { option = (string)CB.SelectedItem, filename = copiedFile.Name, filesize = (uint)fsize, duration = dur};
+          OT.Text += $"Record File Size: {fsize}\n";
+          //var vlctime = new TimeSpan(0, 0, (int)time);
+          var dur = videoProperties.Duration.ToString(@"hh\:mm\:ss");
+          
+          OT.Text += $"Video Duration: {dur} Play Time: {selapsed}\n";
+          var res = new Results { option = (string)CB.SelectedItem, filename = copiedFile.Name, filesize = (uint)fsize, duration = dur, expected=selapsed };
           resultlist.Add(res);
+          Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
+
         }
       }
       LV.ItemsSource = resultlist;
       RecordDipose();
-      time = 0;
       Pause.IsEnabled = false;
       Stop.IsEnabled = false;
       PlayRec.IsEnabled = true;
+      Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
 
     }
 
@@ -123,25 +130,25 @@ namespace libVLC_Transcode.Views
           fname = "video-none" + ".mp4";
           pathstring = tempFolder.Path + "\\" + fname;
           option = $":sout=#file{{dst={pathstring}}}";
-          OT.Text += "no transcode mp4 was selected\n\n";
+          OT.Text += "no transcode mp4 was selected\n";
           break;
         case "transcode mp2v ts":
           fname = "video-mp2v" + ".ts";
           pathstring = tempFolder.Path + "\\" + fname;
           option = $":sout=#transcode{{vcodec=mp2v,vb=2000,scale=Auto,acodec=mpga,ab=128,channels=2,samplerate=44100,scodec=none}}:std{{access=file,mux=ts,dst={pathstring}}}";
-          OT.Text += "transcode mp2v ts was selected\n\n";
+          OT.Text += "transcode mp2v ts was selected\n";
           break;
         case "transcode mp4v mp4":
           fname = "video-mp4v" + ".mp4";
           pathstring = tempFolder.Path + "\\" + fname;
           option = $":sout=#transcode{{vcodec=mp4v,vb=2000,scale=Auto,acodec=mp4a,ab=128,channels=2,samplerate=44100,scodec=none}}:std{{access=file,mux=mp4,dst={pathstring}}}";
-          OT.Text += "transcode mp4v mp4 was selected\n\n";
+          OT.Text += "transcode mp4v mp4 was selected\n";
           break;
         case "transcode theo ogg":
           fname = "video-theo" + ".ogv";
           pathstring = tempFolder.Path + "\\" + fname;
           option = $":sout=#transcode{{vcodec=theo,vb=2000,scale=Auto,acodec=vorb,ab=128,channels=2,samplerate=8000,scodec=none}}:std{{access=file,mux=ogg,dst={pathstring}}}";
-          OT.Text += "transcode theo ogg was selected\n\n";
+          OT.Text += "transcode theo ogg was selected\n";
           break;
         default:
           break;
@@ -149,7 +156,8 @@ namespace libVLC_Transcode.Views
 
       await RecordInit();
       mprec.Play(mrec);
-      OT.Text += "MediaPlayer is Playing \n\n";
+      PlayTimerSetup();
+      OT.Text += "MediaPlayer is Playing \n";
       Pause.IsEnabled = true;
       Stop.IsEnabled = true;
     }
@@ -170,13 +178,18 @@ namespace libVLC_Transcode.Views
                 };
 
       rLIB = new LibVLC(liboptions);
-      //assign log event handler
-      rLIB.Log += async (sender, ee) => await log(ee);
+
+      if (libLog.IsChecked == true)
+      {
+        //assign log event handler
+        rLIB.Log += async (sender, ee) => await log(ee);
+      }
+
       mprec = new MediaPlayer(rLIB);
       urlstring = (string)CBurl.SelectedValue;
       mrec = new Media(rLIB, urlstring, FromType.FromLocation);
       mrec.AddOption(option);
-      OT.Text += $"\nOption was added: {option}\n";
+      OT.Text += $"Option was added: {option}\n";
       //mrec.AddOption(":sout-keep");
       return Task.CompletedTask;
 
@@ -195,13 +208,41 @@ namespace libVLC_Transcode.Views
 
 
     }
-   
-    
+
+
     private void InitCBbox()
     {
       CBurlSource.Add("rtsp://:@tonyw.selfip.com:6001/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif");
       CBurlSource.Add("rtsp://public:public@hyc.homeip.net/cam/realmonitor?channel=1&subtype=1");
       CBurlSource.Add("rtsp://b1.dnsdojo.com:1935/live/sys3.stream");
+    }
+    public void PlayTimerSetup()
+    {
+      starttime = DateTimeOffset.Now;
+      lasttime = starttime;
+      var period = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
+      timer = new Timer(TimerAsync, null, period, period);
+    }
+
+    private async void TimerAsync(object state)
+    {
+      time = DateTimeOffset.Now;
+      selapsed = (time - starttime).ToString(@"hh\:mm\:ss");
+      //elapsed = new TimeSpan(elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
+      if ((time - lasttime).TotalSeconds > 10.0)
+      {
+        lasttime = time;
+        await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+            () =>
+            {
+
+              OT.Text += $"Video Play Timer: {selapsed}\n";
+              Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
+
+            });
+      }
+      
+
     }
   }
 }

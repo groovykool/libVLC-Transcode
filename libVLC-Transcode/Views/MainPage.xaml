@@ -76,6 +76,12 @@
           Margin="12"
           IsEnabled="False"
           Click="Stop_Click" />
+        <CheckBox
+          x:Name="libLog"
+          Visibility="Visible"
+          IsChecked="False"
+          Margin="12"
+          Content="Show libVLC Log Messages" />
       </StackPanel>
       <ScrollViewer
         x:Name="Scroll"
@@ -185,6 +191,16 @@
                   VerticalAlignment="Bottom" />
                 <TextBlock
                   Text="{x:Bind  duration,Mode=OneWay}"
+                  Style="{ThemeResource CaptionTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom" />
+                <TextBlock
+                  Text="Play Time:"
+                  Style="{ThemeResource BaseTextBlockStyle}"
+                  Margin="0,0,12,0"
+                  VerticalAlignment="Bottom" />
+                <TextBlock
+                  Text="{x:Bind  expected,Mode=OneWay}"
                   Style="{ThemeResource CaptionTextBlockStyle}"
                   Margin="0,0,12,0"
                   VerticalAlignment="Bottom" />

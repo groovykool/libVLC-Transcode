@@ -10,8 +10,8 @@ namespace libVLC_Transcode.Helpers
   {
     public string option;
     public uint filesize;
-    public TimeSpan duration;
-    public TimeSpan expected;
+    public string duration;
+    public string expected;
     public string filename;
 
     public Results()
