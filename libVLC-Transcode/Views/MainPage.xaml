@@ -97,6 +97,7 @@
           VerticalAlignment="Stretch"
           Margin="12"
           TextWrapping="Wrap"
+          IsTextSelectionEnabled="True"
           Text="***Start of Log***" />
       </ScrollViewer>
       <ListView
@@ -106,7 +107,7 @@
         Grid.RowSpan="3"
         Header="Result List"
         IsItemClickEnabled="False"
-        SelectionMode="None"
+        SelectionMode="Extended"
         Margin="12">
         <ListView.ItemContainerStyle>
           <Style
