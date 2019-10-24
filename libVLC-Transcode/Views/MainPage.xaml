@@ -53,7 +53,7 @@
           Header="Select Stream URL"
           SelectedIndex="0"
           PlaceholderText="Pick an Option"
-          ItemsSource="{x:Bind CBurlSource,Mode=OneWay}"/>
+          ItemsSource="{x:Bind CBurlSource,Mode=OneWay}" />
       </StackPanel>
       <StackPanel
         Orientation="Horizontal"
@@ -77,17 +77,22 @@
           IsEnabled="False"
           Click="Stop_Click" />
       </StackPanel>
-      <TextBox
-        x:Name="OT"
+      <ScrollViewer
+        x:Name="Scroll"
+        VerticalScrollBarVisibility="Visible"
+        BorderBrush="Gold"
+        BorderThickness="1"
         Grid.Row="2"
-        Grid.ColumnSpan="1"
-        Header="Log"
-        VerticalAlignment="Stretch"
-        Margin="12"
-        TextWrapping="Wrap"
-        Text="***Start of Log***"
-        AcceptsReturn="True"
-        TextChanged="OT_TextChanged" />
+        Grid.ColumnSpan="1">
+        <TextBlock
+          x:Name="OT"
+          Grid.Row="2"
+          Grid.ColumnSpan="1"
+          VerticalAlignment="Stretch"
+          Margin="12"
+          TextWrapping="Wrap"
+          Text="***Start of Log***" />
+      </ScrollViewer>
       <ListView
         x:Name="LV"
         Grid.Row="0"
@@ -139,12 +144,12 @@
                   Text="Option:"
                   Style="{ThemeResource BaseTextBlockStyle}"
                   Margin="0,0,12,0"
-                  VerticalAlignment="Bottom"/>
+                  VerticalAlignment="Bottom" />
                 <TextBlock
                   Text="{x:Bind  option,Mode=OneWay}"
                   Style="{ThemeResource CaptionTextBlockStyle}"
                   Margin="0,0,0,0"
-                  VerticalAlignment="Bottom"/>
+                  VerticalAlignment="Bottom" />
               </StackPanel>
               <StackPanel
                 Orientation="Horizontal"
@@ -153,23 +158,22 @@
                   Text="Filename:"
                   Style="{ThemeResource BaseTextBlockStyle}"
                   Margin="0,0,12,0"
-                  VerticalAlignment="Bottom"/>
+                  VerticalAlignment="Bottom" />
                 <TextBlock
                   Text="{x:Bind  filename,Mode=OneWay}"
                   Style="{ThemeResource CaptionTextBlockStyle}"
                   Margin="0,0,12,0"
-                  VerticalAlignment="Bottom"/>
+                  VerticalAlignment="Bottom" />
                 <TextBlock
                   Text="Size:"
                   Style="{ThemeResource BaseTextBlockStyle}"
                   Margin="0,0,12,0"
-                  VerticalAlignment="Bottom"/>
+                  VerticalAlignment="Bottom" />
                 <TextBlock
                   Text="{x:Bind filesize,Mode=OneWay}"
                   Style="{ThemeResource CaptionTextBlockStyle}"
                   Margin="0,0,0,0"
-                  VerticalAlignment="Bottom"
-                  />
+                  VerticalAlignment="Bottom" />
               </StackPanel>
               <StackPanel
                 Orientation="Horizontal"

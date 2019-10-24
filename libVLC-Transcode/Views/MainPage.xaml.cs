@@ -23,7 +23,7 @@ namespace libVLC_Transcode.Views
     double time = 0;
     private ObservableCollection<Results> resultlist = new ObservableCollection<Results>();
     private ObservableCollection<string> CBurlSource = new ObservableCollection<string>();
-    ScrollViewer OTscroll;
+    
 
     public MainPage()
     {
@@ -42,7 +42,7 @@ namespace libVLC_Transcode.Views
     {
       OT.Text += "\n";
       InitCBbox();
-      InitAutoScroll();
+      
     }
 
 
@@ -54,16 +54,7 @@ namespace libVLC_Transcode.Views
       rLIB.Dispose();
     }
 
-    public async void log(LogEventArgs ee)
-    {
-      //Run on UIthread to write to control
-      await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
-      {
-        lines++;
-        OT.Text += $"libVLC:{lines}[{ee.Level}] {ee.Module}:{ee.Message}\n";
-      });
-
-    }
+   
     private void Pause_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
     {
       mprec.Pause();
@@ -180,7 +171,7 @@ namespace libVLC_Transcode.Views
 
       rLIB = new LibVLC(liboptions);
       //assign log event handler
-      rLIB.Log += (sender, ee) => log(ee);
+      rLIB.Log += async (sender, ee) => await log(ee);
       mprec = new MediaPlayer(rLIB);
       urlstring = (string)CBurl.SelectedValue;
       mrec = new Media(rLIB, urlstring, FromType.FromLocation);
@@ -190,24 +181,22 @@ namespace libVLC_Transcode.Views
       return Task.CompletedTask;
 
     }
-    private void OT_TextChanged(object sender, TextChangedEventArgs e)
+    public async Task log(LogEventArgs ee)
     {
-      //OTscroll.ChangeView(0.0f, OTscroll.ExtentHeight, 1.0f);
-    }
 
-    private void InitAutoScroll()
-    {
-      //Keep log text box scrolled to the bottom
-      var grid = (Grid)VisualTreeHelper.GetChild(OT, 0);
-      for (var i = 0; i <= VisualTreeHelper.GetChildrenCount(grid) - 1; i++)
+      lines++;
+      var mess = $"libVLC:{lines}[{ee.Level}] {ee.Module}:{ee.Message}\n";
+      //Run on UIthread to write to control
+      await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
       {
-        object obj = VisualTreeHelper.GetChild(grid, i);
-        if (!(obj is ScrollViewer)) continue;
-        OTscroll = (ScrollViewer)obj;
-        break;
-      }
+        OT.Text += mess;
+        Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
+      });
+
 
     }
+   
+    
     private void InitCBbox()
     {
       CBurlSource.Add("rtsp://:@tonyw.selfip.com:6001/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif");
