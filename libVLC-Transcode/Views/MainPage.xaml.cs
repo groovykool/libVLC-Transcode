@@ -138,6 +138,7 @@ namespace libVLC_Transcode.Views
       PlayRec.IsEnabled = false;
       OT.Text = "***Start of Log***\n";
       //Get transcode selection and setup
+
       switch (CB.SelectedItem)
       {
         case "no transcode mp4":
