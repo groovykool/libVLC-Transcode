@@ -229,6 +229,13 @@ namespace libVLC_Transcode.Views
       CBurlSource.Add("rtsp://:@tonyw.selfip.com:6001/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif");
       CBurlSource.Add("rtsp://public:public@hyc.homeip.net/cam/realmonitor?channel=1&subtype=1");
       CBurlSource.Add("rtsp://b1.dnsdojo.com:1935/live/sys3.stream");
+      CBurlSource.Add("http://64.118.25.194/mjpg/video.mjpg");
+      CBurlSource.Add("http://201.202.191.78:8083/mjpg/video.mjpg");
+      CBurlSource.Add("http://h2owebcam.axiscam.net/mjpg/video.mjpg");
+      CBurlSource.Add("http://91.133.75.164/mjpg/video.mjpg");
+      CBurlSource.Add("http://82.150.206.177/cgi-bin/faststream.jpg?stream=half&fps=15&rand=COUNTER");
+      CBurlSource.Add("http://114.179.87.1:8080/-wvhttp-01-/GetOneShot?image_size=640x480&frame_count=1000000000");
+      CBurlSource.Add("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4");
     }
     public void PlayTimerSetup()
     {
