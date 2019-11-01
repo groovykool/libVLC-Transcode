@@ -25,7 +25,7 @@ namespace libVLC_Transcode.Views
     private ObservableCollection<Results> resultlist = new ObservableCollection<Results>();
     private ObservableCollection<string> CBurlSource = new ObservableCollection<string>();
     Timer timer;
-    bool recdone = false;
+    bool recdone = false, scrollnow=false;
 
 
 
@@ -41,10 +41,11 @@ namespace libVLC_Transcode.Views
 
     private void Scroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
     {
-      if (recdone)
+      if (recdone||scrollnow)
       {
         Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
         recdone = false;
+        scrollnow = false;
       }
     }
 
@@ -320,16 +321,18 @@ namespace libVLC_Transcode.Views
       time = DateTimeOffset.Now;
       selapsed = (time - starttime).ToString(@"hh\:mm\:ss");
       //elapsed = new TimeSpan(elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
-
+      scrollnow = true;
       if ((time - lasttime).TotalSeconds > 10.0)
       {
         lasttime = time;
+        var mess= $"Video Play Timer: {selapsed}\n"+ Getstats();
         await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
             () =>
             {
 
-              OT.Text += $"Video Play Timer: {selapsed}\n";
+              OT.Text += mess;
               Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
+              
 
             });
       }
