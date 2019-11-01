@@ -19,14 +19,14 @@ namespace libVLC_Transcode.Views
     LibVLC rLIB;
     Media mrec;
     int lines = 0;
-    string option = "", pathstring = "", fname = "", urlstring = "",selapsed="";
+    string option = "", pathstring = "", fname = "", urlstring = "", selapsed = "";
     StorageFolder tempFolder = ApplicationData.Current.TemporaryFolder;
-    DateTimeOffset time,lasttime,starttime;
+    DateTimeOffset time, lasttime, starttime;
     private ObservableCollection<Results> resultlist = new ObservableCollection<Results>();
     private ObservableCollection<string> CBurlSource = new ObservableCollection<string>();
     Timer timer;
     bool recdone = false;
-    
+
 
 
     public MainPage()
@@ -36,12 +36,12 @@ namespace libVLC_Transcode.Views
       Loaded += MainPage_Loaded;
       Unloaded += MainPage_Unloaded;
       Scroll.ViewChanged += Scroll_ViewChanged;
-      
+
     }
 
     private void Scroll_ViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
     {
-      if(recdone)
+      if (recdone)
       {
         Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
         recdone = false;
@@ -75,7 +75,7 @@ namespace libVLC_Transcode.Views
       mprec.Pause();
       timer.Dispose();
       OT.Text += "MediaPlayer was Paused and Play timer Diposed. \n";
-     
+
     }
 
     private async void Stop_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -116,9 +116,9 @@ namespace libVLC_Transcode.Views
           OT.Text += $"Record File Size: {fsize}\n";
           //var vlctime = new TimeSpan(0, 0, (int)time);
           var dur = videoProperties.Duration.ToString(@"hh\:mm\:ss");
-          
+
           OT.Text += $"Video Duration: {dur} Play Time: {selapsed}\n\n\n";
-          var res = new Results { option = (string)CB.SelectedItem, filename = copiedFile.Name, filesize = (uint)fsize, duration = dur, expected=selapsed };
+          var res = new Results { option = (string)CB.SelectedItem, filename = copiedFile.Name, filesize = (uint)fsize, duration = dur, expected = selapsed };
           resultlist.Add(res);
           //Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
 
@@ -190,6 +190,7 @@ namespace libVLC_Transcode.Views
                     $"--sout-file-overwrite",
                     $"--network-caching=200",
                     $"--rtsp-tcp"
+
                 };
 
       rLIB = new LibVLC(liboptions);
@@ -205,10 +206,79 @@ namespace libVLC_Transcode.Views
       mrec = new Media(rLIB, urlstring, FromType.FromLocation);
       mrec.AddOption(option);
       OT.Text += $"Option was added:\n{option}\n";
+      mrec.StateChanged += Mrec_StateChanged;
       //mrec.AddOption(":sout-keep");
       return Task.CompletedTask;
 
     }
+
+    private async void Mrec_StateChanged(object sender, MediaStateChangedEventArgs e)
+    {
+      var stats ="--\n"+ $"State Changed:  {e.State}\n" + Getstats();
+
+      await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+          () =>
+          {
+            OT.Text += stats;
+            Scroll.ChangeView(0.0f, Scroll.ExtentHeight, 1.0f);
+
+          });
+    }
+
+    public string Getstats()
+    {
+      var mpp = mprec;
+      var aindex = mpp.Media.Tracks.Length;
+      MediaTrack[] mt;
+      //Get array of the Tracks or streams
+      mt = mpp.Media.Tracks;
+      TrackType tt;
+      uint cd, wd, ht, fr = 0, chs, rt;
+      string cdd, sizest, murl, outp;
+      MediaType mtype;
+      int id;
+      float br;
+      outp = "-----\n";
+      murl = mpp.Media.Mrl;
+      br = mpp.Media.Statistics.DemuxBitrate * 8; //in kb/s
+      outp += $"URL: [ {murl} ]\nDemuxBitrate:{br} kb/s\n";
+      //Get info for each track/stream
+      outp += $"Number of Streams: {aindex}\n";
+      for (int r = 0; r < aindex; r++)
+      {
+        tt = mt[r].TrackType;
+        cd = mt[r].Codec;
+        //get Codec description
+        cdd = mpp.Media.CodecDescription(tt, cd);
+        id = mt[r].Id;
+
+        if (tt.ToString() == "Video")
+        {
+          //if video stream get FPS and size
+          fr = (uint)mpp.Fps;
+          wd = mt[r].Data.Video.Width;
+          ht = mt[r].Data.Video.Height;
+
+          sizest = $"Size:{wd},{ht}  FPS:{fr}";
+
+        }
+        else
+        {
+          //if audio stream get channels and rate
+          chs = mt[r].Data.Audio.Channels;
+          rt = mt[r].Data.Audio.Rate;
+          sizest = $"Channels:{chs}  Rate:{rt}";
+        }
+
+        mtype = mpp.Media.Type;
+        outp += $"Stream {r}:  Codec:[ {cdd} ]   Types:{mtype}-{tt}" +
+                      $"  Id:{id}  {sizest}  \n";
+      }
+      outp += "-----\n";
+      return outp;
+
+    }
+
     public async Task log(LogEventArgs ee)
     {
       lines++;
@@ -250,6 +320,7 @@ namespace libVLC_Transcode.Views
       time = DateTimeOffset.Now;
       selapsed = (time - starttime).ToString(@"hh\:mm\:ss");
       //elapsed = new TimeSpan(elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
+
       if ((time - lasttime).TotalSeconds > 10.0)
       {
         lasttime = time;
@@ -262,7 +333,7 @@ namespace libVLC_Transcode.Views
 
             });
       }
-      
+
 
     }
   }
