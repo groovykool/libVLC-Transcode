@@ -189,7 +189,7 @@ namespace libVLC_Transcode.Views
                     $"--udp-caching=500",
                     $"--tcp-caching=500",
                     $"--sout-file-overwrite",
-                    $"--network-caching=200",
+                    $"--network-caching=1200",
                     $"--rtsp-tcp"
 
                 };
