@@ -102,7 +102,7 @@
       <Version>2.0.1</Version>
     </PackageReference>
     <PackageReference Include="VideoLAN.LibVLC.UWP">
-      <Version>3.2.0</Version>
+      <Version>5.0.0.7</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
